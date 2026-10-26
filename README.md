@@ -37,6 +37,10 @@ Not interpreted, so kept as lines of text exactly as written: tables, horizontal
 
 Known differences from CommonMark, all of them in what is shown, none in what is saved: a line break inside a paragraph stays a line break (it is not folded into a space); a numbered marker other than 1 does not interrupt a paragraph; a less-indented continuation line is a new paragraph, not a lazy continuation; an empty paragraph the user leaves behind is not written.
 
+## Source positions
+
+`SourceMap.of(doc)` says where each part of a document sits in the Markdown text it is written as (`text()` is exactly `Lossless.write(doc)`), and back: `line(pos)`, `column(pos)` and `offset(pos)` for a document position, `docPosition(line, column)` and `docPositionAtOffset(offset)` the other way. Lines and columns count from 0 and offsets index the text. Lines are exact. A column is found by matching the document's characters against the source line in order, skipping marks and escapes the document does not hold (`**`, `` ` ``, a backslash), so it is exact for plain text and lands beside the markup in formatted text. A line that holds no text of its own (a blank line) gives the start of the next block. Every caret position of the test fixtures maps to a line and column and back to itself. Building it writes the whole text once: about 260 ms for 4000 blocks, so build it on demand, not on every keystroke.
+
 ## Tests
 
     mvn test

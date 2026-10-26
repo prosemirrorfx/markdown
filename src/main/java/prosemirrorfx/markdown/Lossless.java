@@ -30,13 +30,18 @@ public final class Lossless {
         return create(DOC, attrs("tail", text.substring(end), "eol", crlf ? "\r\n" : "\n", "bom", bom), frag(blocks.toArray(Node[]::new)));
     }
 
-    public static String write(Node doc) {
+    public static String write(Node doc) { return write(doc, null); }
+
+    /** As write; where sink is given, it receives where every textblock went, with line numbers in the whole text (see SourceMap). */
+    static String write(Node doc, Map<Node, LosslessWriter.Placed> sink) {
         var lines = new ArrayList<String>();
         Node prev = null;
         for (var child : doc.getContent().getContent()) {
-            var block = block(child, prev);
-            if (block.isEmpty()) continue;
-            lines.addAll(block);
+            var writer = block(child, prev);
+            if (writer.result.isEmpty()) continue;
+            var base = lines.size();
+            lines.addAll(writer.result);
+            if (sink != null) writer.placed.forEach((node, p) -> sink.put(node, p.shift(base)));
             prev = child;
         }
         var text = String.join("\n", lines) + str(doc, "tail");
@@ -45,9 +50,13 @@ public final class Lossless {
     }
 
     /** The block as it was; if that does not read back as the same block (after structure edits), as the usual form. */
-    static List<String> block(Node n, Node prev) {
-        var lines = new LosslessWriter(false).top(n, prev);
-        return lines.isEmpty() || readsBack(lines, n) ? lines : new LosslessWriter(true).top(n, prev);
+    static LosslessWriter block(Node n, Node prev) {
+        var writer = new LosslessWriter(false);
+        var lines = writer.top(n, prev);
+        if (lines.isEmpty() || readsBack(lines, n)) return writer;
+        var canonical = new LosslessWriter(true);
+        canonical.top(n, prev);
+        return canonical;
     }
 
     static boolean readsBack(List<String> lines, Node n) {

@@ -19,16 +19,25 @@ final class LosslessWriter {
 
     static final Ctx TOP = new Ctx("", "", 0, false);
 
+    /** Where a textblock was written: its first line in this writer's output, the marker or indent before its text, and its lines after that. */
+    record Placed(int line, String prefix, List<String> lines) {
+        Placed shift(int base) { return new Placed(line + base, prefix, lines); }
+    }
+
     /** A single asterisk opening emphasis: the text this paragraph came from writes it that way. */
     static final java.util.regex.Pattern STAR = java.util.regex.Pattern.compile("(?<![*\\\\])\\*(?![*\\s])");
 
     final boolean canonical;
+    /** Every textblock written, by identity, for SourceMap; the lines are relative to this writer's own output. */
+    final Map<Node, Placed> placed = new IdentityHashMap<>();
+    List<String> result = List.of();
 
     LosslessWriter(boolean canonical) { this.canonical = canonical; }
 
     List<String> top(Node n, Node prev) {
         var out = new ArrayList<String>();
         block(n, prev, null, TOP, out);
+        result = out;
         return out;
     }
 
@@ -49,6 +58,7 @@ final class LosslessWriter {
         if (marker == null) out.addAll(gap(n, prev == null ? "" : "\n"));
         var lines = type == HEADING ? heading(n, c) : verbatim ? raw(n) : text(n, c, marker != null);
         var prefix = marker != null ? marker : verbatim ? "" : lead(n, c);
+        placed.put(n, new Placed(out.size(), prefix, lines));
         out.add(prefix + lines.getFirst());
         out.addAll(lines.subList(1, lines.size()));
     }
