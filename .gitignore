@@ -1,0 +1,12 @@
+prp
+.claude
+CLAUDE.md
+target/
+shade/
+dist/
+credentials.json
+*.key
+*.pem
+*.p12
+*.log
+*.jar

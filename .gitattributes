@@ -1,0 +1,2 @@
+# Test fixtures are compared byte for byte: never let git change their line endings.
+src/test/resources/** -text

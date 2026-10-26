@@ -1,0 +1,7 @@
+prosemirrorfx-markdown
+Copyright 2026 the prosemirrorfx authors. Licensed under the Apache License, Version 2.0.
+
+Depends on prosemirrorfx-core, which is built on prosemirror-kotlin by Atlassian (Apache License, Version 2.0),
+and on commonmark-java (BSD 2-Clause) and jsoup (MIT).
+
+prosemirrorfx is an independent project. It is not affiliated with, or endorsed by, ProseMirror or Atlassian.
